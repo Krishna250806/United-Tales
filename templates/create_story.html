@@ -1,0 +1,69 @@
+{% extends "base.html" %} {% block title %}Create Story - UnitedTales{% endblock
+%} {% block content %}
+<div class="create-story-container">
+  <div class="create-story-card">
+    <div class="create-story-header">
+      <h1>Create New Story</h1>
+      <p>Start your collaborative storytelling journey</p>
+    </div>
+
+    <form method="POST" class="create-story-form">
+      <div class="form-group">
+        <label for="title">Story Title</label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          placeholder="Enter an engaging title for your story"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="genre">Genre</label>
+        <select id="genre" name="genre" required>
+          <option value="">Select a genre</option>
+          <option value="Fantasy">Fantasy</option>
+          <option value="Sci-Fi">Sci-Fi</option>
+          <option value="Mystery">Mystery</option>
+          <option value="Romance">Romance</option>
+          <option value="Thriller">Thriller</option>
+          <option value="Horror">Horror</option>
+          <option value="Drama">Drama</option>
+          <option value="Comedy">Comedy</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="content">Story Beginning</label>
+        <textarea
+          id="content"
+          name="content"
+          rows="15"
+          placeholder="Write the beginning of your story. This will be the foundation that others will build upon..."
+          required
+        ></textarea>
+        <div class="char-count"><span id="char-count">0</span> characters</div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
+          >Cancel</a
+        >
+        <button type="submit" class="btn btn-primary">Create Story</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const textarea = document.getElementById("content");
+    const charCount = document.getElementById("char-count");
+
+    textarea.addEventListener("input", function () {
+      charCount.textContent = this.value.length;
+    });
+  });
+</script>
+{% endblock %}

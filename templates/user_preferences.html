@@ -1,0 +1,174 @@
+{% extends "base.html" %} {% block title %}User Preferences - UnitedTales{%
+endblock %} {% block content %}
+<div class="preferences-container">
+  <div class="preferences-card">
+    <div class="preferences-header">
+      <h1>Tell Us About Your Writing</h1>
+      <p>
+        Help us match you with the right stories by sharing your writing
+        preferences
+      </p>
+    </div>
+
+    <form method="POST" class="preferences-form">
+      <div class="form-section">
+        <h3>What's Your Writing Strength?</h3>
+        <p>Choose the aspect of storytelling you excel at:</p>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input
+              type="radio"
+              name="writing_strength"
+              value="start"
+              required
+            />
+            <div class="radio-content">
+              <i class="fas fa-play-circle"></i>
+              <div>
+                <strong>Story Beginnings</strong>
+                <p>I love crafting compelling openings and setting the stage</p>
+              </div>
+            </div>
+          </label>
+
+          <label class="radio-option">
+            <input type="radio" name="writing_strength" value="end" required />
+            <div class="radio-content">
+              <i class="fas fa-flag-checkered"></i>
+              <div>
+                <strong>Story Endings</strong>
+                <p>I excel at bringing stories to satisfying conclusions</p>
+              </div>
+            </div>
+          </label>
+
+          <label class="radio-option">
+            <input type="radio" name="writing_strength" value="plot" required />
+            <div class="radio-content">
+              <i class="fas fa-route"></i>
+              <div>
+                <strong>Plot Development</strong>
+                <p>
+                  I'm great at developing storylines and moving plots forward
+                </p>
+              </div>
+            </div>
+          </label>
+
+          <label class="radio-option">
+            <input
+              type="radio"
+              name="writing_strength"
+              value="twist"
+              required
+            />
+            <div class="radio-content">
+              <i class="fas fa-sync-alt"></i>
+              <div>
+                <strong>Plot Twists</strong>
+                <p>I love creating unexpected turns and surprises</p>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>What's Your Favorite Genre?</h3>
+        <p>Select the genre you most enjoy writing and reading:</p>
+        <div class="genre-grid">
+          <label class="genre-option">
+            <input
+              type="radio"
+              name="favorite_genre"
+              value="Fantasy"
+              required
+            />
+            <div class="genre-content">
+              <i class="fas fa-dragon"></i>
+              <span>Fantasy</span>
+            </div>
+          </label>
+
+          <label class="genre-option">
+            <input type="radio" name="favorite_genre" value="Sci-Fi" required />
+            <div class="genre-content">
+              <i class="fas fa-rocket"></i>
+              <span>Sci-Fi</span>
+            </div>
+          </label>
+
+          <label class="genre-option">
+            <input
+              type="radio"
+              name="favorite_genre"
+              value="Mystery"
+              required
+            />
+            <div class="genre-content">
+              <i class="fas fa-search"></i>
+              <span>Mystery</span>
+            </div>
+          </label>
+
+          <label class="genre-option">
+            <input
+              type="radio"
+              name="favorite_genre"
+              value="Romance"
+              required
+            />
+            <div class="genre-content">
+              <i class="fas fa-heart"></i>
+              <span>Romance</span>
+            </div>
+          </label>
+
+          <label class="genre-option">
+            <input
+              type="radio"
+              name="favorite_genre"
+              value="Thriller"
+              required
+            />
+            <div class="genre-content">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span>Thriller</span>
+            </div>
+          </label>
+
+          <label class="genre-option">
+            <input type="radio" name="favorite_genre" value="Horror" required />
+            <div class="genre-content">
+              <i class="fas fa-ghost"></i>
+              <span>Horror</span>
+            </div>
+          </label>
+
+          <label class="genre-option">
+            <input type="radio" name="favorite_genre" value="Drama" required />
+            <div class="genre-content">
+              <i class="fas fa-theater-masks"></i>
+              <span>Drama</span>
+            </div>
+          </label>
+
+          <label class="genre-option">
+            <input type="radio" name="favorite_genre" value="Comedy" required />
+            <div class="genre-content">
+              <i class="fas fa-laugh"></i>
+              <span>Comedy</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary btn-large">
+          Complete Setup
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

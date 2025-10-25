@@ -1,0 +1,162 @@
+{% extends "base.html" %} {% block title %}Admin Panel - UnitedTales{% endblock
+%} {% block content %}
+<div class="admin-container">
+  <div class="admin-header">
+    <h1>Admin Panel</h1>
+    <p>Manage the UnitedTales platform</p>
+  </div>
+
+  <div class="admin-stats">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ users|length }}</h3>
+        <p>Total Users</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-book"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ stories|length }}</h3>
+        <p>Total Stories</p>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <i class="fas fa-pen"></i>
+      </div>
+      <div class="stat-content">
+        <h3>{{ contributions|length }}</h3>
+        <p>Total Contributions</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-sections">
+    <div class="admin-section">
+      <h2>Recent Users</h2>
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Writing Strength</th>
+              <th>Favorite Genre</th>
+              <th>Joined</th>
+              <th>Admin</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users[-10:] %}
+            <tr>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.writing_strength or 'Not set' }}</td>
+              <td>{{ user.favorite_genre or 'Not set' }}</td>
+              <td>{{ user.created_at.strftime('%B %d, %Y') }}</td>
+              <td>
+                {% if user.is_admin %}
+                <span class="badge badge-success">Yes</span>
+                {% else %}
+                <span class="badge badge-secondary">No</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <h2>Recent Stories</h2>
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Genre</th>
+              <th>Status</th>
+              <th>Contributions</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for story in stories[-10:] %}
+            <tr>
+              <td>
+                <a href="{{ url_for('story_detail', story_id=story.id) }}"
+                  >{{ story.title }}</a
+                >
+              </td>
+              <td>{{ story.author.username }}</td>
+              <td>{{ story.genre }}</td>
+              <td>
+                <span class="badge badge-{{ story.status }}"
+                  >{{ story.status.title() }}</span
+                >
+              </td>
+              <td>{{ story.contributions|length }}</td>
+              <td>{{ story.created_at.strftime('%B %d, %Y') }}</td>
+              <td>
+                <a
+                  href="{{ url_for('delete_story', story_id=story.id) }}"
+                  class="btn btn-danger btn-sm"
+                  onclick="return confirm('Are you sure you want to delete this story? This action cannot be undone.')"
+                >
+                  <i class="fas fa-trash"></i> Delete
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <h2>Recent Contributions</h2>
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Contributor</th>
+              <th>Story</th>
+              <th>Status</th>
+              <th>Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for contribution in contributions[-10:] %}
+            <tr>
+              <td>{{ contribution.contributor.username }}</td>
+              <td>
+                <a
+                  href="{{ url_for('story_detail', story_id=contribution.story.id) }}"
+                  >{{ contribution.story.title }}</a
+                >
+              </td>
+              <td>
+                <span class="badge badge-{{ contribution.status }}"
+                  >{{ contribution.status.title() }}</span
+                >
+              </td>
+              <td>{{ contribution.created_at.strftime('%B %d, %Y') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

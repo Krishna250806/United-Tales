@@ -1,0 +1,138 @@
+{% extends "base.html" %} {% block content %}
+<section class="hero">
+  <div class="hero-content">
+    <h1>Welcome to UnitedTales</h1>
+    <p class="hero-subtitle">Where stories come alive through collaboration</p>
+    <p class="hero-description">
+      Start a story, invite others to continue it, and watch as your narrative
+      evolves through the collective creativity of our community.
+    </p>
+    <div class="hero-actions">
+      {% if not session.user_id %}
+      <a href="{{ url_for('register') }}" class="btn btn-primary"
+        >Get Started</a
+      >
+      <a href="{{ url_for('browse_stories') }}" class="btn btn-secondary"
+        >Browse Stories</a
+      >
+      {% else %}
+      <a href="{{ url_for('create_story') }}" class="btn btn-primary"
+        >Create Story</a
+      >
+      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
+        >My Dashboard</a
+      >
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-image">
+    <div class="story-cards">
+      <div class="story-card">
+        <i class="fas fa-book-open"></i>
+        <h3>Start</h3>
+        <p>Begin your narrative journey</p>
+      </div>
+      <div class="story-card">
+        <i class="fas fa-users"></i>
+        <h3>Collaborate</h3>
+        <p>Let others add their voice</p>
+      </div>
+      <div class="story-card">
+        <i class="fas fa-star"></i>
+        <h3>Approve</h3>
+        <p>Curate the perfect story</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="container">
+    <h2>How It Works</h2>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">
+          <i class="fas fa-pen-nib"></i>
+        </div>
+        <h3>Start Your Story</h3>
+        <p>
+          Create the beginning of your narrative and set the tone for
+          collaboration.
+        </p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <i class="fas fa-comments"></i>
+        </div>
+        <h3>Get Contributions</h3>
+        <p>Other writers can suggest continuations to your story.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h3>Approve & Curate</h3>
+        <p>Review and approve the best contributions to build your story.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if stories %}
+<section class="recent-stories">
+  <div class="container">
+    <h2>Recent Stories</h2>
+    <div class="stories-grid">
+      {% for story in stories %}
+      <div class="story-preview">
+        <div class="story-header">
+          <h3>
+            <a href="{{ url_for('story_detail', story_id=story.id) }}"
+              >{{ story.title }}</a
+            >
+          </h3>
+          <span class="story-genre">{{ story.genre }}</span>
+        </div>
+        <div class="story-content">
+          <p>
+            {{ story.content[:200] }}{% if story.content|length > 200 %}...{%
+            endif %}
+          </p>
+        </div>
+        <div class="story-meta">
+          <span class="author">by {{ story.author.username }}</span>
+          <span class="date">{{ story.created_at.strftime('%B %d, %Y') }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center">
+      <a href="{{ url_for('browse_stories') }}" class="btn btn-outline"
+        >View All Stories</a
+      >
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="cta">
+  <div class="container">
+    <div class="cta-content">
+      <h2>Ready to Start Writing?</h2>
+      <p>
+        Join our community of storytellers and bring your ideas to life through
+        collaboration.
+      </p>
+      {% if not session.user_id %}
+      <a href="{{ url_for('register') }}" class="btn btn-primary btn-large"
+        >Join UnitedTales</a
+      >
+      {% else %}
+      <a href="{{ url_for('create_story') }}" class="btn btn-primary btn-large"
+        >Create Your First Story</a
+      >
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends "base.html" %} {% block title %}{{ story.title }} - UnitedTales{%
+endblock %} {% block content %}
+<div class="story-detail-container">
+  <div class="story-header">
+    <div class="story-meta">
+      <h1>{{ story.title }}</h1>
+      <div class="story-info">
+        <span class="genre">{{ story.genre }}</span>
+        <span class="author">by {{ story.author.username }}</span>
+        <span class="date">{{ story.created_at.strftime('%B %d, %Y') }}</span>
+      </div>
+    </div>
+    <div class="story-actions">
+      {% if session.user_id and story.author_id != session.user_id %}
+      <button class="btn btn-primary" onclick="toggleContributionForm()">
+        Contribute
+      </button>
+      {% endif %} {% if session.user_id and (story.author_id == session.user_id
+      or user.is_admin) %}
+      <a
+        href="{{ url_for('archive_story', story_id=story.id) }}"
+        class="btn btn-secondary"
+        onclick="return confirm('Are you sure you want to archive this story?')"
+      >
+        <i class="fas fa-archive"></i> Archive Story
+      </a>
+      <a
+        href="{{ url_for('delete_story', story_id=story.id) }}"
+        class="btn btn-danger"
+        onclick="return confirm('Are you sure you want to delete this story? This action cannot be undone.')"
+      >
+        <i class="fas fa-trash"></i> Delete Story
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="story-content">
+    <div class="story-text">
+      {{ story.content|replace('\n', '<br />')|safe }}
+    </div>
+
+    {% for contribution in contributions %}
+    <div class="contribution">
+      <div class="contribution-header">
+        <span class="contributor"
+          >Contribution by {{ contribution.contributor.username }}</span
+        >
+        <span class="contribution-date"
+          >{{ contribution.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span
+        >
+      </div>
+      <div class="contribution-content">
+        {{ contribution.content|replace('\n', '<br />')|safe }}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if session.user_id and story.author_id != session.user_id %}
+  <div
+    class="contribution-form-container"
+    id="contribution-form"
+    style="display: none"
+  >
+    <div class="contribution-form-card">
+      <h3>Add Your Contribution</h3>
+      <form method="POST" action="{{ url_for('contribute') }}">
+        <input type="hidden" name="story_id" value="{{ story.id }}" />
+        <div class="form-group">
+          <label for="content">Your Contribution</label>
+          <textarea
+            id="content"
+            name="content"
+            rows="8"
+            placeholder="Continue the story from where it left off..."
+            required
+          ></textarea>
+        </div>
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="toggleContributionForm()"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Submit Contribution
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %} {% if pending_contributions and session.user_id == story.author_id
+  %}
+  <div class="pending-contributions">
+    <h3>Pending Contributions</h3>
+    {% for contribution in pending_contributions %}
+    <div class="pending-contribution">
+      <div class="contribution-header">
+        <span class="contributor"
+          >by {{ contribution.contributor.username }}</span
+        >
+        <span class="contribution-date"
+          >{{ contribution.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span
+        >
+      </div>
+      <div class="contribution-content">
+        {{ contribution.content|replace('\n', '<br />')|safe }}
+      </div>
+      <div class="contribution-actions">
+        <a
+          href="{{ url_for('approve_contribution', contribution_id=contribution.id) }}"
+          class="btn btn-success btn-sm"
+          >Approve</a
+        >
+        <a
+          href="{{ url_for('reject_contribution', contribution_id=contribution.id) }}"
+          class="btn btn-danger btn-sm"
+          >Reject</a
+        >
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  function toggleContributionForm() {
+    const form = document.getElementById("contribution-form");
+    if (form.style.display === "none") {
+      form.style.display = "block";
+      form.scrollIntoView({ behavior: "smooth" });
+    } else {
+      form.style.display = "none";
+    }
+  }
+</script>
+{% endblock %}

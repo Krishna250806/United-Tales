@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Stories - UnitedTales{% endblock %}
+
+{% block content %}
+<div class="browse-container">
+    <div class="browse-header">
+        <h1>Browse Stories</h1>
+        <p>Discover amazing collaborative stories from our community</p>
+    </div>
+    
+    <div class="browse-filters">
+        <form method="GET" class="filter-form">
+            <div class="filter-group">
+                <label for="search">Search Stories</label>
+                <input type="text" id="search" name="search" placeholder="Search by title or content..." value="{{ search_term or '' }}">
+            </div>
+            
+            <div class="filter-group">
+                <label for="genre">Filter by Genre</label>
+                <select id="genre" name="genre">
+                    <option value="">All Genres</option>
+                    {% for genre in genres %}
+                        <option value="{{ genre }}" {% if selected_genre == genre %}selected{% endif %}>{{ genre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{{ url_for('browse_stories') }}" class="btn btn-secondary">Clear</a>
+        </form>
+    </div>
+    
+    <div class="stories-grid">
+        {% if stories %}
+            {% for story in stories %}
+            <div class="story-card">
+                <div class="story-card-header">
+                    <h3><a href="{{ url_for('story_detail', story_id=story.id) }}">{{ story.title }}</a></h3>
+                    <span class="story-genre">{{ story.genre }}</span>
+                </div>
+                
+                <div class="story-card-content">
+                    <p>{{ story.content[:200] }}{% if story.content|length > 200 %}...{% endif %}</p>
+                </div>
+                
+                <div class="story-card-meta">
+                    <div class="story-author">
+                        <i class="fas fa-user"></i>
+                        <span>{{ story.author.username }}</span>
+                    </div>
+                    <div class="story-date">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ story.created_at.strftime('%B %d, %Y') }}</span>
+                    </div>
+                    <div class="story-contributions">
+                        <i class="fas fa-users"></i>
+                        <span>{{ story.contributions|length }} contributions</span>
+                    </div>
+                </div>
+                
+                <div class="story-card-actions">
+                    <a href="{{ url_for('story_detail', story_id=story.id) }}" class="btn btn-primary btn-sm">Read Story</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>No stories found</h3>
+                <p>Try adjusting your search criteria or create a new story!</p>
+                {% if session.user_id %}
+                    <a href="{{ url_for('create_story') }}" class="btn btn-primary">Create Story</a>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary">Join StoryCollab</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
