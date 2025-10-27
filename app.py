@@ -2,11 +2,12 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+
 import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///story_collab.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:manager@localhost:3306/story_collab'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -303,6 +304,28 @@ def archive_story(story_id):
     
     flash(f'Story "{story.title}" archived successfully!')
     return redirect(url_for('dashboard'))
+
+@app.route('/unarchive-story/<int:story_id>')
+def unarchive_story(story_id):
+    if 'user_id' not in session:
+        flash('You must be logged in to unarchive stories')
+        return redirect(url_for('login'))
+    
+    story = Story.query.get_or_404(story_id)
+    user = User.query.get(session['user_id'])
+    
+    # Check if user is admin or story owner
+    if not user.is_admin and story.author_id != user.id:
+        flash('You are not authorized to unarchive this story')
+        return redirect(url_for('dashboard'))
+    
+    # Unarchive the story
+    story.status = 'active'
+    db.session.commit()
+    
+    flash(f'Story "{story.title}" has been unarchived successfully!')
+    return redirect(url_for('dashboard'))
+
 
 @app.route('/make-admin/<username>')
 def make_admin(username):
