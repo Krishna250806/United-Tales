@@ -7,7 +7,9 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:manager@localhost:3306/story_collab'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://avnadmin:AVNS_eIQep-rPpRUAPJ6C3oJ@mysql-2fd117e9-krishnaag06-4434.d.aivencloud.com:16374/defaultdb?ssl-mode=REQUIRED'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)

@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return aText.localeCompare(bText);
             });
             
-            rows.forEach(row => tbody.appendChild(row));
+            rows.forEach(row => tbody.appendChild(row));                    
         });
     });
 
