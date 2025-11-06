@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:ZayHstlBRErvvvSzHcYYNhyQdhWKGeys@crossover-proxy.rlwy.net:15402/railway"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:SIDLTtWDbHiGMMdAJVszwJyAvhwHfVvE@caboose.proxy.rlwy.net:39947/railway"
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
