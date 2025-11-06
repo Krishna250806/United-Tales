@@ -337,7 +337,7 @@ def unarchive_story(story_id):
     return redirect(url_for('dashboard'))
 
 
-@app.route('/make-admin/<username>', methods=['POST'])
+@app.route('/make-admin/<username>', methods=['GET','POST'])
 def make_admin(username):
     me = User.query.get(session.get('user_id'))
     if not me or not me.is_admin:
