@@ -367,6 +367,34 @@ def _debug_user_before_update(mapper, connection, target):
         print("".join(traceback.format_stack(limit=12)))
         print("=== END WARNING ===\n")
 
+@app.route('/install-hash-guards')
+def install_hash_guards():
+    db.session.execute(text("""
+        DROP TRIGGER IF EXISTS user_hash_guard_update;
+    """))
+    db.session.execute(text("""
+        DROP TRIGGER IF EXISTS user_hash_guard_insert;
+    """))
+    db.session.execute(text("""
+        CREATE TRIGGER user_hash_guard_update
+        BEFORE UPDATE ON `user` FOR EACH ROW
+        BEGIN
+            IF NEW.password_hash NOT LIKE '%$%$%' THEN
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid password_hash update blocked by trigger';
+            END IF;
+        END
+    """))
+    db.session.execute(text("""
+        CREATE TRIGGER user_hash_guard_insert
+        BEFORE INSERT ON `user` FOR EACH ROW
+        BEGIN
+            IF NEW.password_hash NOT LIKE '%$%$%' THEN
+                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid password_hash insert blocked by trigger';
+            END IF;
+        END
+    """))
+    db.session.commit()
+    return "Triggers installed."
 
 if __name__ == '__main__':
     with app.app_context():
