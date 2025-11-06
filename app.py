@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-
+from sqlalchemy import text
 import os
 
 app = Flask(__name__)
@@ -355,9 +355,10 @@ def make_admin(username):
 
 @app.route('/fix-password-col')
 def fix_password_col():
-    db.session.execute("ALTER TABLE user MODIFY password_hash VARCHAR(255) NOT NULL;")
+    sql = text("ALTER TABLE `user` MODIFY `password_hash` VARCHAR(255) NOT NULL;")
+    db.session.execute(sql)
     db.session.commit()
-    return "password_hash column fixed!"
+    return "password_hash column widened to VARCHAR(255)"
 
 
 if __name__ == '__main__':
