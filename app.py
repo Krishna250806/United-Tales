@@ -2,9 +2,10 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-from sqlalchemy import text
+from sqlalchemy import event, text, inspect
 import traceback
-from sqlalchemy import event
+from flask import abort
+
 import os
 
 app = Flask(__name__)
@@ -97,26 +98,19 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-
-        # Debug prints (now safe):
-        print("USERNAME FROM FORM:", username)
-        print("PASSWORD FROM FORM:", password)
-
+        username = (request.form.get('username') or '').strip()
+        password = request.form.get('password') or ''
         user = User.query.filter_by(username=username).first()
-        print("QUERY RESULT:", user)
-        if user:
-            print("HASH IN DB:", user.password_hash)
 
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id
             return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid username or password')
 
-    # Only return page in GET
+        flash('Invalid username or password')
+        return render_template('login.html'), 401
+
     return render_template('login.html')
+
 
 
 @app.route('/logout')
@@ -343,21 +337,21 @@ def unarchive_story(story_id):
     return redirect(url_for('dashboard'))
 
 
-@app.route('/make-admin/<username>')
+@app.route('/make-admin/<username>', methods=['POST'])
 def make_admin(username):
-    """Quick route to make a user admin - for development only"""
-    user = User.query.filter_by(username=username).first()
-    if user:
-        user.is_admin = True
-        db.session.commit()
-        flash(f'User {username} is now an admin!')
-    else:
-        flash(f'User {username} not found!')
-    return redirect(url_for('index'))
+    me = User.query.get(session.get('user_id'))
+    if not me or not me.is_admin:
+        abort(403)
+
+    user = User.query.filter_by(username=username).first_or_404()
+    user.is_admin = True
+    db.session.commit()
+    flash(f'User {username} is now an admin!')
+    return redirect(url_for('admin_panel'))
 
 @event.listens_for(User, "before_update")
 def _debug_user_before_update(mapper, connection, target):
-    state = db.inspect(target)
+    state = inspect(target)
     attr = state.attrs.password_hash
     if attr.history.has_changes():
         print("\n=== WARNING: password_hash CHANGED on UPDATE ===")
@@ -367,34 +361,38 @@ def _debug_user_before_update(mapper, connection, target):
         print("".join(traceback.format_stack(limit=12)))
         print("=== END WARNING ===\n")
 
-@app.route('/install-hash-guards')
-def install_hash_guards():
-    db.session.execute(text("""
-        DROP TRIGGER IF EXISTS user_hash_guard_update;
-    """))
-    db.session.execute(text("""
-        DROP TRIGGER IF EXISTS user_hash_guard_insert;
-    """))
-    db.session.execute(text("""
-        CREATE TRIGGER user_hash_guard_update
-        BEFORE UPDATE ON `user` FOR EACH ROW
-        BEGIN
-            IF NEW.password_hash NOT LIKE '%$%$%' THEN
-                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid password_hash update blocked by trigger';
-            END IF;
-        END
-    """))
-    db.session.execute(text("""
-        CREATE TRIGGER user_hash_guard_insert
-        BEFORE INSERT ON `user` FOR EACH ROW
-        BEGIN
-            IF NEW.password_hash NOT LIKE '%$%$%' THEN
-                SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid password_hash insert blocked by trigger';
-            END IF;
-        END
-    """))
-    db.session.commit()
-    return "Triggers installed."
+@event.listens_for(db.session.__class__, "before_flush")
+def _guard_bad_hashes(session, flush_context, instances):
+    # fires even if attribute events are missed
+    for obj in session.dirty:
+        if isinstance(obj, User):
+            st = inspect(obj)
+            if st.attrs.password_hash.history.has_changes():
+                new = st.attrs.password_hash.value
+                if new is None or str(new).count('$') < 2:
+                    print("\n=== BLOCKED bad password_hash update ===")
+                    print("user id:", obj.id, "username:", obj.username, "new:", new)
+                    print("".join(traceback.format_stack(limit=14)))
+                    print("=== END ===\n")
+                    raise ValueError("Blocked invalid password_hash on update")
+                
+
+@app.route('/diag/<username>')
+def diag(username):
+    row = db.session.execute(
+        text("SELECT id, username, LENGTH(`password_hash`) AS len, `password_hash` "
+             "FROM `user` WHERE username=:u"),
+        {"u": username}
+    ).mappings().first()
+    return jsonify(dict(row) if row else {"error": "no such user"})
+
+@app.route('/debug-check/<username>/<password>')
+def debug_check(username, password):
+    u = User.query.filter_by(username=(username or '').strip()).first()
+    if not u:
+        return "no such user"
+    return "OK" if check_password_hash(u.password_hash, password) else "BAD"
+
 
 if __name__ == '__main__':
     with app.app_context():
