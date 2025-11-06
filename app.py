@@ -12,8 +12,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:SIDLTtWDbHiGMMdAJV
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-with app.app_context():
-    db.create_all()
+    
 
 
 
@@ -30,7 +29,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(120), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     writing_strength = db.Column(db.String(50))  # start, end, plot, twist
     favorite_genre = db.Column(db.String(50))
@@ -96,17 +95,27 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Debug prints (now safe):
+        print("USERNAME FROM FORM:", username)
+        print("PASSWORD FROM FORM:", password)
+
         user = User.query.filter_by(username=username).first()
+        print("QUERY RESULT:", user)
+        if user:
+            print("HASH IN DB:", user.password_hash)
+
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid username or password')
-    
+
+    # Only return page in GET
     return render_template('login.html')
+
 
 @app.route('/logout')
 def logout():
@@ -343,6 +352,13 @@ def make_admin(username):
     else:
         flash(f'User {username} not found!')
     return redirect(url_for('index'))
+
+@app.route('/fix-password-col')
+def fix_password_col():
+    db.session.execute("ALTER TABLE user MODIFY password_hash VARCHAR(255) NOT NULL;")
+    db.session.commit()
+    return "password_hash column fixed!"
+
 
 if __name__ == '__main__':
     with app.app_context():
