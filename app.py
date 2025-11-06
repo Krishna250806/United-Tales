@@ -12,10 +12,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:SIDLTtWDbHiGMMdAJV
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
-@app.route("/init-db")
-def init_db():
+with app.app_context():
     db.create_all()
-    return "✅ Database tables created successfully!"
+
 
 
 # Context processor to make user data available globally
