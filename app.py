@@ -353,7 +353,20 @@ def make_admin(username):
         flash(f'User {username} not found!')
     return redirect(url_for('index'))
 
-
+@app.route('/diag/<username>')
+def diag(username):
+    out = {}
+    # column info
+    col = db.session.execute(text("SHOW COLUMNS FROM `user` LIKE 'password_hash';")).mappings().all()
+    out["column"] = [dict(r) for r in col]
+    # the hash and its length
+    row = db.session.execute(
+        text("SELECT id, username, LENGTH(`password_hash`) AS len, `password_hash` "
+             "FROM `user` WHERE username=:u"),
+        {"u": username}
+    ).mappings().first()
+    out["user"] = dict(row) if row else None
+    return jsonify(out)
 
 
 if __name__ == '__main__':
