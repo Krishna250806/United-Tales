@@ -353,12 +353,7 @@ def make_admin(username):
         flash(f'User {username} not found!')
     return redirect(url_for('index'))
 
-@app.route('/fix-password-col')
-def fix_password_col():
-    sql = text("ALTER TABLE `user` MODIFY `password_hash` VARCHAR(255) NOT NULL;")
-    db.session.execute(sql)
-    db.session.commit()
-    return "password_hash column widened to VARCHAR(255)"
+
 
 
 if __name__ == '__main__':
