@@ -29,7 +29,8 @@ A full-featured collaborative story writing platform built with Flask, HTML, CSS
 ## Technology Stack
 
 - **Backend**: Flask (Python)
-- **Database**: SQLite with SQLAlchemy ORM
+- **Database**: MYSQL
+  with SQLAlchemy ORM
 - **Frontend**: Vanilla HTML, CSS, JavaScript
 - **Styling**: Custom CSS with responsive design
 - **Icons**: Font Awesome
