@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from sqlalchemy import text
+import traceback
+from sqlalchemy import event
 import os
 
 app = Flask(__name__)
@@ -353,20 +355,17 @@ def make_admin(username):
         flash(f'User {username} not found!')
     return redirect(url_for('index'))
 
-@app.route('/diag/<username>')
-def diag(username):
-    out = {}
-    # column info
-    col = db.session.execute(text("SHOW COLUMNS FROM `user` LIKE 'password_hash';")).mappings().all()
-    out["column"] = [dict(r) for r in col]
-    # the hash and its length
-    row = db.session.execute(
-        text("SELECT id, username, LENGTH(`password_hash`) AS len, `password_hash` "
-             "FROM `user` WHERE username=:u"),
-        {"u": username}
-    ).mappings().first()
-    out["user"] = dict(row) if row else None
-    return jsonify(out)
+@event.listens_for(User, "before_update")
+def _debug_user_before_update(mapper, connection, target):
+    state = db.inspect(target)
+    attr = state.attrs.password_hash
+    if attr.history.has_changes():
+        print("\n=== WARNING: password_hash CHANGED on UPDATE ===")
+        print("old:", attr.history.deleted)
+        print("new:", attr.history.added)
+        print("--- stack ---")
+        print("".join(traceback.format_stack(limit=12)))
+        print("=== END WARNING ===\n")
 
 
 if __name__ == '__main__':
