@@ -172,25 +172,109 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Admin table sorting (basic implementation)
+  (function () {
+    // Extract cell value safely
+    function getCellValue(row, idx) {
+        const cell = row.children[idx];
+        return (cell ? cell.textContent : '').trim();
+    }
+
+    // Try to detect type: number, date, or string
+    function inferType(a, b) {
+        const na = parseFloat(a.replace(/,/g, ''));
+        const nb = parseFloat(b.replace(/,/g, ''));
+        if (!isNaN(na) && !isNaN(nb)) return 'number';
+
+        const da = Date.parse(a);
+        const db = Date.parse(b);
+        if (!isNaN(da) && !isNaN(db)) return 'date';
+
+        return 'string';
+    }
+
+    // Base comparator by type
+    function baseCompare(a, b, type) {
+        if (type === 'number') {
+            const na = parseFloat(a.replace(/,/g, ''));
+            const nb = parseFloat(b.replace(/,/g, ''));
+            return na - nb;
+        }
+        if (type === 'date') {
+            return Date.parse(a) - Date.parse(b);
+        }
+        // localeCompare for strings
+        return a.localeCompare(b, undefined, { sensitivity: 'base' });
+    }
+
+    // Stable merge sort for <tr> rows
+    function mergeSort(rows, idx, dir) {
+        if (rows.length <= 1) return rows;
+
+        const mid = Math.floor(rows.length / 2);
+        const left = mergeSort(rows.slice(0, mid), idx, dir);
+        const right = mergeSort(rows.slice(mid), idx, dir);
+
+        // Detect type once per merge step (use first available pair)
+        let probeA = '', probeB = '';
+        for (let i = 0; i < left.length && probeA === ''; i++) probeA = getCellValue(left[i], idx);
+        for (let j = 0; j < right.length && probeB === ''; j++) probeB = getCellValue(right[j], idx);
+        const type = inferType(probeA, probeB);
+
+        const merged = [];
+        let i = 0, j = 0;
+
+        while (i < left.length && j < right.length) {
+            const a = getCellValue(left[i], idx);
+            const b = getCellValue(right[j], idx);
+            const cmp = baseCompare(a, b, type);
+
+            // Stable: if equal, prefer left[i]
+            const takeLeft = dir === 'asc' ? (cmp <= 0) : (cmp >= 0);
+            if (takeLeft) {
+                merged.push(left[i++]);
+            } else {
+                merged.push(right[j++]);
+            }
+        }
+        while (i < left.length) merged.push(left[i++]);
+        while (j < right.length) merged.push(right[j++]);
+        return merged;
+    }
+
     const tableHeaders = document.querySelectorAll('.admin-table th');
-    tableHeaders.forEach(header => {
+    tableHeaders.forEach((header, thIndex) => {
         header.style.cursor = 'pointer';
-        header.addEventListener('click', function() {
+        header.addEventListener('click', function () {
             const table = this.closest('table');
             const tbody = table.querySelector('tbody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
-            const columnIndex = Array.from(this.parentNode.children).indexOf(this);
-            
-            // Simple sorting (you might want to implement more sophisticated sorting)
-            rows.sort((a, b) => {
-                const aText = a.children[columnIndex].textContent.trim();
-                const bText = b.children[columnIndex].textContent.trim();
-                return aText.localeCompare(bText);
-            });
-            
-            rows.forEach(row => tbody.appendChild(row));                    
+
+            // Remember last column & direction on the table element
+            const lastIndex = parseInt(table.dataset.sortIndex ?? -1, 10);
+            let dir = table.dataset.sortDir || 'asc';
+            if (lastIndex === thIndex) {
+                dir = (dir === 'asc') ? 'desc' : 'asc';
+            } else {
+                dir = 'asc';
+            }
+
+            // Run stable merge sort
+            const sorted = mergeSort(rows, thIndex, dir);
+
+            // Update DOM
+            sorted.forEach(r => tbody.appendChild(r));
+
+            // Persist sort state
+            table.dataset.sortIndex = String(thIndex);
+            table.dataset.sortDir = dir;
+
+            // Optional: ARIA & visual indicator
+            tableHeaders.forEach(h => h.removeAttribute('aria-sort'));
+            this.setAttribute('aria-sort', dir); // 'ascending'|'descending' also valid
+            // Add your own CSS to style [aria-sort="asc/desc"] if desired
         });
     });
+})();
 
     // Contribution status indicators
     const statusBadges = document.querySelectorAll('.status');
